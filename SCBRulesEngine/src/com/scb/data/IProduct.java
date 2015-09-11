@@ -11,5 +11,7 @@ public class IProduct {
 	public String recommendedSegment = IConstants.SEGMENT_PRIORITY;
 	
 	public String assetClassId = null;
+	
+	public String riskRating = null;	
 
 }

@@ -11,6 +11,10 @@ import org.apache.commons.logging.LogFactory;
 
 import com.scb.cache.CacheService;
 import com.scb.constants.IConstants;
+import com.scb.data.FundProduct;
+import com.scb.data.HouseView;
+import com.scb.data.ModelPortfolio;
+import com.scb.data.RiskProfileToProductRiskMap;
 import com.scb.vo.ClsCodeVO;
 
 
@@ -79,6 +83,170 @@ public class CommonDAO {
 		}
 		return list;
 	}
+
+	public List<HouseView> getHouseViewList()
+	{
+		long startTime = System.currentTimeMillis();
+		Connection conn = getConnection();
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		List<HouseView> houseViewList = new ArrayList<HouseView>();
+		
+		String sqlSelect = "SELECT   ASSET_CLASS_ID, "
+				  +"ASSET_CLASS, "
+	              +"SENTIMENT "
+				 + "FROM V_HOUSE_VIEW ";
+
+			try
+			{
+				stmt = conn.prepareStatement(sqlSelect);
+				
+				LOG.info(sqlSelect);
+				rs = stmt.executeQuery();
+				while(rs.next())
+				{
+					HouseView houseView = new HouseView();					
+
+					houseView.assetClassId = rs.getString("ASSET_CLASS_ID");
+					houseView.sentiment = rs.getString("SENTIMENT");
+					
+					houseViewList.add(houseView);
+				}
+				
+				LOG.info("Loaded <" + houseViewList.size() + "> houseviews.");
+				
+				return houseViewList;
+			}
+			catch(Exception err)
+			{
+				LOG.error("Exception : " + err.getMessage());
+				err.printStackTrace();
+			}
+			finally
+			{
+				try
+				{
+					if(rs!=null) rs.close();
+					if(stmt!=null) stmt.close();
+					if(conn!=null) conn.close();
+				}
+				catch(Exception ignore)
+				{
+				}
+				
+				LOG.info("getHouseViewList() Time Taken " + (System.currentTimeMillis() - startTime) + " msecs");			
+			}
+		return null;
+	}	
+	
+	public List<ModelPortfolio> getModelPortfolioList()
+	{
+		long startTime = System.currentTimeMillis();
+		Connection conn = getConnection();
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		List<ModelPortfolio> modelPortfolioList = new ArrayList<ModelPortfolio>();
+		
+		String sqlSelect = "SELECT   RISK_PROFILE, "
+				  +"ASSET_CLASS_1, "
+	              +"ASSET_CLASS_2, "
+	              +"LEVEL_1_GAP, "
+	              +"LEVEL_2_GAP "	              
+				 + "FROM V_MODEL_PORTFOLIO ";
+
+			try
+			{
+				stmt = conn.prepareStatement(sqlSelect);
+				
+				LOG.info(sqlSelect);
+				rs = stmt.executeQuery();
+				while(rs.next())
+				{
+					ModelPortfolio portfolio = new ModelPortfolio();					
+
+					portfolio.riskProfile = rs.getString("RISK_PROFILE");
+					portfolio.assetClassLevel1 = rs.getString("ASSET_CLASS_1");
+					portfolio.assetClassLevel2 = rs.getString("ASSET_CLASS_2");
+					portfolio.modelGapLevel1 = rs.getDouble("LEVEL_1_GAP");
+					portfolio.modelGapLevel2 = rs.getDouble("LEVEL_2_GAP");
+					
+					modelPortfolioList.add(portfolio);
+				}
+				
+				LOG.info("Loaded <" + modelPortfolioList.size() + "> model portoflio.");
+				
+				return modelPortfolioList;
+			}
+			catch(Exception err)
+			{
+				LOG.error("Exception : " + err.getMessage());
+				err.printStackTrace();
+			}
+			finally
+			{
+				try
+				{
+					if(rs!=null) rs.close();
+					if(stmt!=null) stmt.close();
+					if(conn!=null) conn.close();
+				}
+				catch(Exception ignore)
+				{
+				}
+				
+				LOG.info("getModelPortfolioList() Time Taken " + (System.currentTimeMillis() - startTime) + " msecs");			
+			}
+		return null;
+	}	
+	
+	
+	public RiskProfileToProductRiskMap getRiskProfileToProductRiskRatingMap()
+	{
+		long startTime = System.currentTimeMillis();
+		Connection conn = getConnection();
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		RiskProfileToProductRiskMap map = new RiskProfileToProductRiskMap();
+		
+		String sqlSelect = "SELECT   RISK_PROFILE, "
+				  +"RISK_RATING "	              
+				 + "FROM V_RISKPROFILE_RISKRATING_MAP ";
+
+			try
+			{
+				stmt = conn.prepareStatement(sqlSelect);
+				
+				LOG.info(sqlSelect);
+				rs = stmt.executeQuery();
+				while(rs.next())
+				{
+					map.addMapping(rs.getString("RISK_PROFILE"), rs.getString("RISK_RATING"));					
+				}
+				
+				return map;
+			}
+			catch(Exception err)
+			{
+				LOG.error("Exception : " + err.getMessage());
+				err.printStackTrace();
+			}
+			finally
+			{
+				try
+				{
+					if(rs!=null) rs.close();
+					if(stmt!=null) stmt.close();
+					if(conn!=null) conn.close();
+				}
+				catch(Exception ignore)
+				{
+				}
+				
+				LOG.info("getRiskProfileToProductRiskRatingMap() Time Taken " + (System.currentTimeMillis() - startTime) + " msecs");			
+			}
+		return null;
+	}	
+		
 	
 	public String getNextSequenceNo(String seq) throws Exception
 	{

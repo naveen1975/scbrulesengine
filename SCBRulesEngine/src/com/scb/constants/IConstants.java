@@ -28,4 +28,17 @@ public interface IConstants {
 	
 	public static final String DATASOURCE_FACTORY = "DS";
 	
+	//recommendation categories
+	public static final String OC_NEG = "OC_NEG"; //Sell
+	public static final String UC_POS = "UC_POS"; //Buy
+	public static final String UC_NUT = "UC_NUT"; //RM to analyze
+	public static final String UC_NEG = "UC_NEG"; //RM to analyze
+	public static final String OC_POS = "OC_POS"; //Hold
+	public static final String OC_NUT = "OC_NUT"; //Hold
+	
+	public static final String THEMATIC_FUNDS = "THEMATIC_FUNDS"; 
+	
+	
+	
+	
 }

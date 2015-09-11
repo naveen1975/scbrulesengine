@@ -13,7 +13,7 @@ public class FundProduct extends IProduct {
 	public double return3Yr = 0.0;
 	
 	public boolean isThematicFund = false;
-	public String riskRating = null;
+
 	public String fundType = null;
 	
 }

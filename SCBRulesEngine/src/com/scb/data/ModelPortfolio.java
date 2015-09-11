@@ -1,4 +1,4 @@
-package com.scb.portfolio;
+package com.scb.data;
 
 import com.scb.constants.IConstants;
 

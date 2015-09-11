@@ -13,6 +13,7 @@ import com.scb.cache.CacheService;
 import com.scb.constants.IConstants;
 import com.scb.data.Customer;
 import com.scb.data.FundProduct;
+import com.scb.data.IProduct;
 
 public class CustomerDAO {
 	
@@ -33,14 +34,11 @@ public class CustomerDAO {
 		Connection conn = getConnection();
 		PreparedStatement stmt = null;
 		ResultSet rs = null;
-		List<FundProduct> fundList = new ArrayList<FundProduct>();
+		List<Customer> customerList = new ArrayList<Customer>();
 		
 		String sqlSelect = "SELECT CUST_ID, "
 				  +"CUST_NAME, "
-				  +"RISK_PROFILE, "
-				  +"ASSET_CLASS, "
-	              +"GAP_PERCENT, "
-	              +"GAP_AMOUNT "
+				  +"RISK_PROFILE "
 				 + "FROM V_CUST ";
 
 			try
@@ -51,22 +49,20 @@ public class CustomerDAO {
 				rs = stmt.executeQuery();
 				while(rs.next())
 				{
-					FundProduct product = new FundProduct();					
-					//product.isin = rs.getString("PRODUCT_ID");
-					product.productId = rs.getString("PRODUCT_ID");
-					product.productName = rs.getString("PRODUCT_NAME");
-					product.assetClassId = rs.getString("ASSET_CLASS_ID");
-					product.riskRating = rs.getString("PRODUCT_RISK_RATING");
-					product.recommendedSegment = rs.getString("FND_APPRVED_SGMT");
-					product.focusFundIndicator = rs.getString("FOCUS_FUND_INDICATOR");
-					product.fundType = rs.getString("FUND_TYPE");
+					Customer customer = new Customer();					
 					
-		            fundList.add(product);
+					customer.customerId = rs.getString("CUST_ID");
+					customer.customerName = rs.getString("CUST_NAME");
+					customer.riskProfile = rs.getString("RISK_PROFILE");
+					
+					customer.customerHoldings = getCustomerHolding(conn, customer.customerId);
+					
+					customerList.add(customer);
 				}
 				
-				LOG.info("Loaded <" + fundList.size() + "> funds.");
+				LOG.info("Loaded <" + customerList.size() + "> customers.");
 				
-				return fundList;
+				return customerList;
 			}
 			catch(Exception err)
 			{
@@ -85,9 +81,63 @@ public class CustomerDAO {
 				{
 				}
 				
-				LOG.info("getFundProductList() Time Taken " + (System.currentTimeMillis() - startTime) + " msecs");			
+				LOG.info("getCustomerList() Time Taken " + (System.currentTimeMillis() - startTime) + " msecs");			
+			}
+		return null;
+	}
+	
+	public List<IProduct> getCustomerHolding(Connection conn, String customerId)
+	{
+		long startTime = System.currentTimeMillis();
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		List<IProduct> fundList = new ArrayList<IProduct>();
+		
+		String sqlSelect = "SELECT PRODUCT_ID, "
+				  +"ASSET_CLASS "
+				 + "FROM V_CUST_HOLDINGS WHERE CUST_ID = '" + customerId + "'";
+
+			try
+			{
+				stmt = conn.prepareStatement(sqlSelect);
+				
+				LOG.info(sqlSelect);
+				rs = stmt.executeQuery();
+				while(rs.next())
+				{
+					FundProduct product = new FundProduct();					
+					
+					product.productId = rs.getString("PRODUCT_ID");
+					product.assetClassId = rs.getString("ASSET_CLASS");
+					
+					fundList.add(product);
+				}
+				
+				LOG.info("Loaded <" + fundList.size() + "> customer holdings.");
+				
+				return fundList;
+			}
+			catch(Exception err)
+			{
+				LOG.error("Exception : " + err.getMessage());
+				err.printStackTrace();
+			}
+			finally
+			{
+				try
+				{
+					if(rs!=null) rs.close();
+					if(stmt!=null) stmt.close();
+				}
+				catch(Exception ignore)
+				{
+				}
+				
+				LOG.info("getCustomerHolding() Time Taken " + (System.currentTimeMillis() - startTime) + " msecs");			
 			}
 		return null;
 	}	
+	
+	
 
 }

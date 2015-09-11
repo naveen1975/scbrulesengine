@@ -10,7 +10,7 @@ import com.scb.data.FundProduct;
 
 public class CacheService {
 
-	
+
 	//public static final String OUTLOOKQUES = "OUTLOOKQUES";
 	public static Hashtable<String, Object> cache = new Hashtable<String, Object>();
 	

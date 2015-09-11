@@ -12,6 +12,7 @@ import org.apache.commons.logging.LogFactory;
 import com.scb.cache.CacheService;
 import com.scb.constants.IConstants;
 import com.scb.data.FundProduct;
+import com.scb.data.ThematicFundProduct;
 
 
 public class ProductDAO {
@@ -94,5 +95,71 @@ public class ProductDAO {
 	}
 	
 	
+
+	public List<ThematicFundProduct> getThematicFundProductList()
+	{
+		long startTime = System.currentTimeMillis();
+		Connection conn = getConnection();
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		List<ThematicFundProduct> fundList = new ArrayList<ThematicFundProduct>();
+		
+		String sqlSelect = "SELECT   PRODUCT_ID, "
+				  +"PRODUCT_NAME, "
+				  +"ASSET_CLASS_ID, "
+				  +"ASSET_CLASS, "
+	              +"PRODUCT_RISK_RATING, "
+	              +"FND_APPRVED_SGMT, "
+	              +"FOCUS_FUND_INDICATOR, "
+	              +"FUND_TYPE "
+				 + "FROM V_PROD_THEMATIC_FUND ";
+
+			try
+			{
+				stmt = conn.prepareStatement(sqlSelect);
+				
+				LOG.info(sqlSelect);
+				rs = stmt.executeQuery();
+				while(rs.next())
+				{
+					ThematicFundProduct product = new ThematicFundProduct();					
+					//product.isin = rs.getString("PRODUCT_ID");
+					product.productId = rs.getString("PRODUCT_ID");
+					product.productName = rs.getString("PRODUCT_NAME");
+					product.assetClassId = rs.getString("ASSET_CLASS_ID");
+					product.riskRating = rs.getString("PRODUCT_RISK_RATING");
+					product.recommendedSegment = rs.getString("FND_APPRVED_SGMT");
+					product.focusFundIndicator = rs.getString("FOCUS_FUND_INDICATOR");
+					product.fundType = rs.getString("FUND_TYPE");
+					
+		            fundList.add(product);
+				}
+				
+				LOG.info("Loaded <" + fundList.size() + "> thematic funds.");
+				
+				return fundList;
+			}
+			catch(Exception err)
+			{
+				LOG.error("Exception : " + err.getMessage());
+				err.printStackTrace();
+			}
+			finally
+			{
+				try
+				{
+					if(rs!=null) rs.close();
+					if(stmt!=null) stmt.close();
+					if(conn!=null) conn.close();
+				}
+				catch(Exception ignore)
+				{
+				}
+				
+				LOG.info("getThematicFundProductList() Time Taken " + (System.currentTimeMillis() - startTime) + " msecs");			
+			}
+		return null;
+	}
 	
+		
 }
