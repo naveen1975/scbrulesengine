@@ -20,9 +20,11 @@ public interface IConstants {
 	
 	
 	//Sentiment
-	public static final String POSITIVE = "POSITIVE";
-	public static final String NEGATIVE = "NEGATIVE";
-	public static final String NEUTRAL = "NEUTRAL";
+	public static final String POSITIVE = "GIC_HV_OW";
+	public static final String NEGATIVE = "GIC_HV_UW";
+	public static final String NEUTRAL = "GIC_HV_NL";
+	
+	
 	public static final String FUND = "FUND";
 	
 	
@@ -37,6 +39,9 @@ public interface IConstants {
 	public static final String OC_NUT = "OC_NUT"; //Hold
 	
 	public static final String THEMATIC_FUNDS = "THEMATIC_FUNDS"; 
+	
+	
+	public static final String EQUITY_ASSETCLASS = "EQUITY";
 	
 	
 	

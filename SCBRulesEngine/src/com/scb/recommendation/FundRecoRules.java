@@ -4,7 +4,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.scb.constants.IConstants;
+import com.scb.dao.CustomerDAO;
 import com.scb.data.AssetClassLevel2;
 import com.scb.data.Customer;
 import com.scb.data.FundProduct;
@@ -14,6 +18,8 @@ import com.scb.data.ModelPortfolio;
 import com.scb.data.RiskProfileToProductRiskMap;
 
 public class FundRecoRules implements IRule {
+	
+	protected Log LOG = LogFactory.getLog(FundRecoRules.class);
 	
 	private List<HouseView> houseViewList = null;
 	
@@ -44,6 +50,18 @@ public class FundRecoRules implements IRule {
 		
 		return IConstants.NEUTRAL;
 	}
+	
+	public String getHouseViewId(String assetClassId)
+	{
+		for(HouseView houseView : getHouseViewList())
+		{
+			if(houseView.assetClassId.equalsIgnoreCase(assetClassId))
+				return houseView.id;
+		}
+		
+		return null;
+	}	
+		
 	
 	public void setFundProductList(List<FundProduct> fundProductList)
 	{
@@ -77,11 +95,19 @@ public class FundRecoRules implements IRule {
 	
 	public RecoResult execute(Customer customer) throws Exception
 	{
-		
+		LOG.info("Running fund rules for customer : " + customer.customerId);
 		RecoResult result = new RecoResult();
+		
+		result.customer = customer;
 		
 		//For each asset class check the portfolio gap and houseview and assign the category
 		List<ModelPortfolio> modelPortfolioList = getModelPortfolioForCustomer(customer);
+		
+		if(modelPortfolioList == null)
+		{
+			LOG.error("No modal portfolio for the customer <" + customer + "> with riskprofile : " + customer.riskProfile);
+			return result;
+		}
 		
 		for(ModelPortfolio portfolio : modelPortfolioList)
 		{
@@ -91,42 +117,58 @@ public class FundRecoRules implements IRule {
 			//Get Portfolio Gap
 			Double gap = customer.getPortfolioGap(portfolio.assetClassLevel2);
 			
+			if(gap==null || gap.doubleValue()==0.0)
+			{
+				LOG.error("No GAP in portfolio for assetclass <" + portfolio.assetClassLevel2 + "> for the customer <" + customer.customerId + "> with riskprofile : " + customer.riskProfile);				
+				gap = new Double(0).doubleValue();
+			}
+			
 			//Based on category add to the result list
-			if(houseView.equalsIgnoreCase(IConstants.NEGATIVE) || gap.doubleValue() < 0.0) //Sell Category
+			if(houseView.equalsIgnoreCase(IConstants.NEGATIVE) && gap.doubleValue() < 0.0) //Sell Category
 			{
-				result.sellCategory.addAssetClass(portfolio.assetClassLevel2, gap.doubleValue());
+				AssetClassLevel2 assetClass = new AssetClassLevel2(portfolio.assetClassLevel2, gap.doubleValue(), getHouseViewId(portfolio.assetClassLevel2));
+				result.sellCategory.addAssetClass(assetClass);
 				//Populate the holding fund list to sell recommendation
-				recommendFundsToSell(customer, result, portfolio.assetClassLevel2);
+				recommendFundsToSell(customer, assetClass, portfolio.assetClassLevel2);
 			}
 			
-			if(houseView.equalsIgnoreCase(IConstants.POSITIVE) || gap.doubleValue() > 0.0) //Buy Category
+			if(houseView.equalsIgnoreCase(IConstants.POSITIVE) && gap.doubleValue() > 0.0) //Buy Category
 			{
-				result.buyCategory.addAssetClass(portfolio.assetClassLevel2, gap.doubleValue());
-				recommendFunds(customer, result.buyCategory, portfolio.assetClassLevel2);
+				AssetClassLevel2 assetClass = new AssetClassLevel2(portfolio.assetClassLevel2, gap.doubleValue(), getHouseViewId(portfolio.assetClassLevel2));
+				result.buyCategory.addAssetClass(assetClass);
+				recommendFunds(customer, assetClass, portfolio.assetClassLevel2);
 			}
 			
-			if(houseView.equalsIgnoreCase(IConstants.NEUTRAL) || gap.doubleValue() < 0.0) //RM Neutral Category
+			if(houseView.equalsIgnoreCase(IConstants.NEUTRAL) && gap.doubleValue() < 0.0) //RM Neutral Category
 			{
-				result.rmNeutralCategory.addAssetClass(portfolio.assetClassLevel2, gap.doubleValue());
-				recommendFunds(customer, result.rmNeutralCategory, portfolio.assetClassLevel2);
+				AssetClassLevel2 assetClass = new AssetClassLevel2(portfolio.assetClassLevel2, gap.doubleValue(), getHouseViewId(portfolio.assetClassLevel2));
+				
+				result.rmNeutralCategory.addAssetClass(assetClass);
+				recommendFunds(customer, assetClass, portfolio.assetClassLevel2);
 			}
 			
-			if(houseView.equalsIgnoreCase(IConstants.NEGATIVE) || gap.doubleValue() < 0.0) //RM Negative Category
+			if(houseView.equalsIgnoreCase(IConstants.NEGATIVE) && gap.doubleValue() < 0.0) //RM Negative Category
 			{
-				result.rmNegCategory.addAssetClass(portfolio.assetClassLevel2, gap.doubleValue());
-				recommendFunds(customer, result.rmNegCategory, portfolio.assetClassLevel2);
+				AssetClassLevel2 assetClass = new AssetClassLevel2(portfolio.assetClassLevel2, gap.doubleValue(), getHouseViewId(portfolio.assetClassLevel2));
+
+				result.rmNegCategory.addAssetClass(assetClass);
+				recommendFunds(customer, assetClass, portfolio.assetClassLevel2);
 			}
 			
-			if(houseView.equalsIgnoreCase(IConstants.POSITIVE) || gap.doubleValue() > 0.0) //Hold Positive Category
+			if(houseView.equalsIgnoreCase(IConstants.POSITIVE) && gap.doubleValue() > 0.0) //Hold Positive Category
 			{
-				result.holdPositiveCategory.addAssetClass(portfolio.assetClassLevel2, gap.doubleValue());
-				recommendFunds(customer, result.holdPositiveCategory, portfolio.assetClassLevel2);
+				AssetClassLevel2 assetClass = new AssetClassLevel2(portfolio.assetClassLevel2, gap.doubleValue(), getHouseViewId(portfolio.assetClassLevel2));
+
+				result.holdPositiveCategory.addAssetClass(assetClass);
+				recommendFundsToSell(customer, assetClass, portfolio.assetClassLevel2);
 			}
 			
-			if(houseView.equalsIgnoreCase(IConstants.NEUTRAL) || gap.doubleValue() > 0.0) //Hold Neutral Category
+			if(houseView.equalsIgnoreCase(IConstants.NEUTRAL) && gap.doubleValue() > 0.0) //Hold Neutral Category
 			{
-				result.holdNeutralCategory.addAssetClass(portfolio.assetClassLevel2, gap.doubleValue());
-				recommendFunds(customer, result.holdNeutralCategory, portfolio.assetClassLevel2);
+				AssetClassLevel2 assetClass = new AssetClassLevel2(portfolio.assetClassLevel2, gap.doubleValue(), getHouseViewId(portfolio.assetClassLevel2));
+
+				result.holdNeutralCategory.addAssetClass(assetClass);
+				recommendFundsToSell(customer, assetClass, portfolio.assetClassLevel2);
 			}
 		}
 		
@@ -142,7 +184,7 @@ public class FundRecoRules implements IRule {
 		return result;
 	}
 	
-	public void recommendFundsToSell(Customer customer, RecoResult result, String assetClassId)
+	public void recommendFundsToSell(Customer customer, AssetClassLevel2 assetClass,  String assetClassId)
 	{
 		
 		for(IProduct product : customer.customerHoldings)
@@ -150,16 +192,18 @@ public class FundRecoRules implements IRule {
 			
 			if(product.assetClassId.equalsIgnoreCase(assetClassId))
 			{
-				if(result.sellCategory.products.get(assetClassId) == null)
-					result.sellCategory.products.put(assetClassId, new ArrayList<IProduct>());
+				/*
+				if(assetClass.products.get(assetClassId) == null)
+					assetClass.products.put(assetClassId, new ArrayList<IProduct>());
 				
-				List<IProduct> products = result.sellCategory.products.get(assetClassId);
-				products.add(product);
+				List<IProduct> products = assetClass.products.get(assetClassId);
+				*/
+				assetClass.products.add(product);
 			}
 		}
 	}
 	
-	public void recommendFunds(Customer customer, RecoAssetCategory category, String assetClassId)
+	public void recommendFunds(Customer customer, AssetClassLevel2 assetClass, String assetClassId)
 	{
 		
 		for(IProduct product : getFundProductList())
@@ -169,11 +213,13 @@ public class FundRecoRules implements IRule {
 			{
 				if(matchCustomerComplance(customer.riskProfile, product.riskRating))
 				{
-					if(category.products.get(assetClassId) == null)
-						category.products.put(assetClassId, new ArrayList<IProduct>());
+					/*
+					if(assetClass.products.get(assetClassId) == null)
+						assetClass.products.put(assetClassId, new ArrayList<IProduct>());
 									
-					List<IProduct> products = category.products.get(assetClassId);
-					products.add(product);
+					List<IProduct> products = assetClass.products.get(assetClassId);
+					*/
+					assetClass.products.add(product);
 				}
 			}
 		}
@@ -183,9 +229,18 @@ public class FundRecoRules implements IRule {
 	{
 		if(riskProfile!=null && productRating!=null)
 		{
-			String riskRating = getRiskProfileToProductRiskMap().getRiskRating(riskProfile);
+			//String riskRating = getRiskProfileToProductRiskMap().getRiskRating(riskProfile);
 		
-			return productRating.equalsIgnoreCase(riskRating);
+			//return productRating.equalsIgnoreCase(riskRating);
+			
+			try
+			{
+				return Integer.parseInt(riskProfile) >= Integer.parseInt(productRating);
+			}
+			catch(Exception ignore)
+			{
+				
+			}
 		}
 		
 		return false;

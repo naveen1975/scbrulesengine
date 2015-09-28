@@ -3,6 +3,7 @@ package com.scb.recommendation;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.scb.constants.IConstants;
 import com.scb.data.Customer;
 import com.scb.data.HouseView;
 import com.scb.data.IProduct;
@@ -58,10 +59,14 @@ public class ThematicRecoRules implements IRule {
 	public RecoResult execute(Customer customer) throws Exception
 	{
 		RecoResult result = new RecoResult();
-		//The original list is already sorted by focus indiatory and sharpe value when retrieved from DB.
+		//The original list is already sorted by focus indicator and sharpe value when retrieved from DB.
 		for(ThematicFundProduct product : getThematicProductList())
 		{
-			if(matchCustomerComplance(customer.riskProfile, product.riskRating))
+			//Check Level 1 gap i.e equity gap
+			
+			double gap = customer.getPortfolioGap(IConstants.EQUITY_ASSETCLASS);
+			
+			if(gap>0.0 && matchCustomerComplance(customer.riskProfile, product.riskRating))
 			{					
 				result.thematicFundsCategory.add(product);
 			}
@@ -74,9 +79,18 @@ public class ThematicRecoRules implements IRule {
 	{
 		if(riskProfile!=null && productRating!=null)
 		{
-			String riskRating = getRiskProfileToProductRiskMap().getRiskRating(riskProfile);
+			//String riskRating = getRiskProfileToProductRiskMap().getRiskRating(riskProfile);
 		
-			return productRating.equalsIgnoreCase(riskRating);
+			//return productRating.equalsIgnoreCase(riskRating);
+			
+			try
+			{
+				return Integer.parseInt(riskProfile) >= Integer.parseInt(productRating);
+			}
+			catch(Exception ignore)
+			{
+				
+			}
 		}
 		
 		return false;

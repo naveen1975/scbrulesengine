@@ -92,10 +92,10 @@ public class CommonDAO {
 		ResultSet rs = null;
 		List<HouseView> houseViewList = new ArrayList<HouseView>();
 		
-		String sqlSelect = "SELECT   ASSET_CLASS_ID, "
-				  +"ASSET_CLASS, "
-	              +"SENTIMENT "
-				 + "FROM V_HOUSE_VIEW ";
+		String sqlSelect = "SELECT   ASST_CLS_L2_CD AS ASSET_CLASS_ID, "
+				  +"ASST_CLS_L2_DSC AS ASSET_CLASS, "
+	              +"HSVW_CD AS SENTIMENT "
+				 + "FROM VW_GIC_HOUSE_VIEW ";
 
 			try
 			{
@@ -109,6 +109,7 @@ public class CommonDAO {
 
 					houseView.assetClassId = rs.getString("ASSET_CLASS_ID");
 					houseView.sentiment = rs.getString("SENTIMENT");
+					houseView.id = rs.getString("ASSET_CLASS_ID");
 					
 					houseViewList.add(houseView);
 				}
@@ -147,12 +148,10 @@ public class CommonDAO {
 		ResultSet rs = null;
 		List<ModelPortfolio> modelPortfolioList = new ArrayList<ModelPortfolio>();
 		
-		String sqlSelect = "SELECT   RISK_PROFILE, "
-				  +"ASSET_CLASS_1, "
-	              +"ASSET_CLASS_2, "
-	              +"LEVEL_1_GAP, "
-	              +"LEVEL_2_GAP "	              
-				 + "FROM V_MODEL_PORTFOLIO ";
+		String sqlSelect = "SELECT  CUST_RSK_PRFL_CLS_ID AS RISK_PROFILE, "
+	              +"ASST_CLASS_CLS_ID AS ASSET_CLASS_2, "
+	              +"PRTFL_ALLOC_PCNT AS LEVEL_2_GAP "	              
+				 + "FROM T_MODEL_PRTFL_ALLOC ";
 
 			try
 			{
@@ -165,9 +164,9 @@ public class CommonDAO {
 					ModelPortfolio portfolio = new ModelPortfolio();					
 
 					portfolio.riskProfile = rs.getString("RISK_PROFILE");
-					portfolio.assetClassLevel1 = rs.getString("ASSET_CLASS_1");
+					//portfolio.assetClassLevel1 = rs.getString("ASSET_CLASS_1");
 					portfolio.assetClassLevel2 = rs.getString("ASSET_CLASS_2");
-					portfolio.modelGapLevel1 = rs.getDouble("LEVEL_1_GAP");
+					//portfolio.modelGapLevel1 = rs.getDouble("LEVEL_1_GAP");
 					portfolio.modelGapLevel2 = rs.getDouble("LEVEL_2_GAP");
 					
 					modelPortfolioList.add(portfolio);

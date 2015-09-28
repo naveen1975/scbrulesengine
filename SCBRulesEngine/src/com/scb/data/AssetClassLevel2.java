@@ -1,6 +1,9 @@
 package com.scb.data;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
 
 public class AssetClassLevel2 {
 
@@ -10,10 +13,16 @@ public class AssetClassLevel2 {
 	
 	public double gap = 0.0;
 	
-	public AssetClassLevel2(String id, double gap)
+	public String houseViewId = null;
+	
+	//Products under this category
+	public ArrayList<IProduct> products = new ArrayList<IProduct>();	
+	
+	public AssetClassLevel2(String id, double gap, String houseViewId)
 	{
 		this.id = id;
 		this.gap = gap;
+		this.houseViewId = houseViewId;
 	}
 	
 	public static class SortBySuggestedValue implements Comparator<AssetClassLevel2> {

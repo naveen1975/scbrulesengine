@@ -13,10 +13,7 @@ public class RecoAssetCategory {
 	
 	public String category = null; //Category by the houseview and portfolio gap
 	
-	//Product by asset class - sorty by focus fund and sharpe value
-	
-	//public List<IProduct> products; //Products under this category
-	HashMap<String, List<IProduct>> products = new HashMap<String, List<IProduct>>();
+	//Product by asset class - sort by focus fund and sharpe value
 	
 	
 	public RecoAssetCategory(String category)
@@ -25,9 +22,9 @@ public class RecoAssetCategory {
 	}
 	
 	
-	public void addAssetClass(String assetClass, double gap)
+	public void addAssetClass(String assetClass, double gap, String houseViewId)
 	{
-		assetClassList.add(new AssetClassLevel2(assetClass, gap));
+		assetClassList.add(new AssetClassLevel2(assetClass, gap, houseViewId));
 	}
 	
 	public void addAssetClass(AssetClassLevel2 assetClass)

@@ -37,15 +37,15 @@ public class ProductDAO {
 		ResultSet rs = null;
 		List<FundProduct> fundList = new ArrayList<FundProduct>();
 		
-		String sqlSelect = "SELECT   PRODUCT_ID, "
-				  +"PRODUCT_NAME, "
-				  +"ASSET_CLASS_ID, "
-				  +"ASSET_CLASS, "
-	              +"PRODUCT_RISK_RATING, "
-	              +"FND_APPRVED_SGMT, "
-	              +"FOCUS_FUND_INDICATOR, "
-	              +"FUND_TYPE "
-				 + "FROM V_PROD_FUND ";
+		String sqlSelect = "SELECT   fnd_ut_cd AS PRODUCT_ID, "
+				  +"FUND_NM AS PRODUCT_NAME, "
+				  +"ASST_CLS_L2_CD AS ASSET_CLASS_ID, "
+				  +"ASST_CLS_L2_DSC, "
+	              +"FND_RSK_RTG AS PRODUCT_RISK_RATING, "
+	              +"' ' AS FND_APPRVED_SGMT, "
+	              +"RECO_FLG AS FOCUS_FUND_INDICATOR, "
+	              +"'F' AS FUND_TYPE "
+				 + "FROM VW_PROD_FUND ";
 
 			try
 			{

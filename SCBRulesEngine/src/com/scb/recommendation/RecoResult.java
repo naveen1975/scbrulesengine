@@ -10,6 +10,8 @@ import com.scb.data.ThematicFundProduct;
 
 public class RecoResult {
 	
+	public String recoId;
+	
 	public Customer customer = null;
 	
 	public RecoAssetCategory sellCategory = new RecoAssetCategory(IConstants.OC_NEG);
@@ -20,5 +22,13 @@ public class RecoResult {
 	public RecoAssetCategory holdNeutralCategory = new RecoAssetCategory(IConstants.OC_NUT);
 	
 	public List<ThematicFundProduct> thematicFundsCategory = new ArrayList<ThematicFundProduct>();
+	
+	
+	public int getRecoCount()
+	{
+		return sellCategory.assetClassList.size() + buyCategory.assetClassList.size() + rmNeutralCategory.assetClassList.size()
+				+ rmNegCategory.assetClassList.size() + holdPositiveCategory.assetClassList.size() 
+				+ holdNeutralCategory.assetClassList.size();
+	}
 		
 }
