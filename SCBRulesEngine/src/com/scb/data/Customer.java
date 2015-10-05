@@ -9,6 +9,8 @@ public class Customer {
 	public String customerId = null;
 	public String customerName = null;
 	
+	public int intRiskProfile = 0;
+	
 	public HashMap<String, Double> portfolioGap = new HashMap<String, Double>();	
 	public String segment = IConstants.SEGMENT_PRIORITY;
 	

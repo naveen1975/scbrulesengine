@@ -64,9 +64,9 @@ public class ThematicRecoRules implements IRule {
 		{
 			//Check Level 1 gap i.e equity gap
 			
-			double gap = customer.getPortfolioGap(IConstants.EQUITY_ASSETCLASS);
+			Double gap = customer.getPortfolioGap(IConstants.EQUITY_ASSETCLASS);
 			
-			if(gap>0.0 && matchCustomerComplance(customer.riskProfile, product.riskRating))
+			if(gap!=null && gap>0.0 && matchCustomerComplance(customer.intRiskProfile, product.riskRating))
 			{					
 				result.thematicFundsCategory.add(product);
 			}
@@ -75,9 +75,9 @@ public class ThematicRecoRules implements IRule {
 		return result;
 	}
 	
-	boolean matchCustomerComplance(String riskProfile, String productRating)
+	boolean matchCustomerComplance(int riskProfile, String productRating)
 	{
-		if(riskProfile!=null && productRating!=null)
+		if(riskProfile!=0 && productRating!=null)
 		{
 			//String riskRating = getRiskProfileToProductRiskMap().getRiskRating(riskProfile);
 		
@@ -85,7 +85,7 @@ public class ThematicRecoRules implements IRule {
 			
 			try
 			{
-				return Integer.parseInt(riskProfile) >= Integer.parseInt(productRating);
+				return riskProfile >= Integer.parseInt(productRating);
 			}
 			catch(Exception ignore)
 			{

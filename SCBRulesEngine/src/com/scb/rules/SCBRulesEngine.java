@@ -45,7 +45,7 @@ public class SCBRulesEngine {
 			fundRules.setFundProductList(productDao.getFundProductList());
 			//fundRules.setRiskProfileToProductRiskMap(commonDao.getRiskProfileToProductRiskRatingMap());
 			
-			//thematicRules.setThematicProductList(productDao.getThematicFundProductList());
+			thematicRules.setThematicProductList(productDao.getThematicFundProductList());
 			//thematicRules.setRiskProfileToProductRiskMap(fundRules.getRiskProfileToProductRiskMap());
 			
 			customerList = customerDao.getCustomerList();
@@ -60,9 +60,9 @@ public class SCBRulesEngine {
 		Customer customer = getCustomer(customerId);
 		
 		RecoResult fundResult = fundRules.execute(customer);
-		//RecoResult thematicResult = thematicRules.execute(customer);
+		RecoResult thematicResult = thematicRules.execute(customer);
 		
-		//fundResult.thematicFundsCategory = thematicResult.thematicFundsCategory;
+		fundResult.thematicFundsCategory = thematicResult.thematicFundsCategory;
 		
 		return fundResult;
 	}

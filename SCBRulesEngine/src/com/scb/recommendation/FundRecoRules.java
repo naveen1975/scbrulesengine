@@ -116,12 +116,13 @@ public class FundRecoRules implements IRule {
 			
 			//Get Portfolio Gap
 			Double gap = customer.getPortfolioGap(portfolio.assetClassLevel2);
-			
+
 			if(gap==null || gap.doubleValue()==0.0)
 			{
 				LOG.error("No GAP in portfolio for assetclass <" + portfolio.assetClassLevel2 + "> for the customer <" + customer.customerId + "> with riskprofile : " + customer.riskProfile);				
 				gap = new Double(0).doubleValue();
 			}
+
 			
 			//Based on category add to the result list
 			if(houseView.equalsIgnoreCase(IConstants.NEGATIVE) && gap.doubleValue() < 0.0) //Sell Category
@@ -211,7 +212,7 @@ public class FundRecoRules implements IRule {
 			
 			if(product.assetClassId.equalsIgnoreCase(assetClassId))
 			{
-				if(matchCustomerComplance(customer.riskProfile, product.riskRating))
+				if(matchCustomerComplance(customer.intRiskProfile, product.riskRating))
 				{
 					/*
 					if(assetClass.products.get(assetClassId) == null)
@@ -225,9 +226,9 @@ public class FundRecoRules implements IRule {
 		}
 	}
 	
-	boolean matchCustomerComplance(String riskProfile, String productRating)
+	boolean matchCustomerComplance(int riskProfile, String productRating)
 	{
-		if(riskProfile!=null && productRating!=null)
+		if(riskProfile!=0 && productRating!=null)
 		{
 			//String riskRating = getRiskProfileToProductRiskMap().getRiskRating(riskProfile);
 		
@@ -235,7 +236,7 @@ public class FundRecoRules implements IRule {
 			
 			try
 			{
-				return Integer.parseInt(riskProfile) >= Integer.parseInt(productRating);
+				return riskProfile >= Integer.parseInt(productRating);
 			}
 			catch(Exception ignore)
 			{

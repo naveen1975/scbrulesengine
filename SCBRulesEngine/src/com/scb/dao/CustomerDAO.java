@@ -53,7 +53,6 @@ public class CustomerDAO {
 				
 				LOG.info(sqlSelect);
 				rs = stmt.executeQuery();
-				int i=0;
 				
 				//Get All customer holdings
 				HashMap<String,List<IProduct>> allCustomerHoldings = getAllCustomerHolding(conn);
@@ -65,16 +64,36 @@ public class CustomerDAO {
 					
 					customer.customerId = rs.getString("CUST_ID");
 					customer.customerName = rs.getString("CUST_NM");
+					
 					customer.riskProfile = rs.getString("CUST_RSK_PRFL_CD");
 					
-					customer.customerHoldings = allCustomerHoldings.get(customer.customerId);
-					customer.portfolioGap = allPortfolioGaps.get(customer.customerId);					
-					
-					//customer.customerHoldings = getCustomerHolding(conn, customer.customerId);
-					//customer.portfolioGap = getPortfolioGap(conn, customer.customerId);
-					
-					customerList.add(customer);
-					i++;
+					if(customer.riskProfile != null && 
+						(customer.riskProfile.equalsIgnoreCase("CIP_3") || 
+						 customer.riskProfile.equalsIgnoreCase("CIP_4") ||
+						 customer.riskProfile.equalsIgnoreCase("CIP_5") ||
+						 customer.riskProfile.equalsIgnoreCase("CIP_6")
+								)
+						)
+					{
+						customer.customerHoldings = allCustomerHoldings.get(customer.customerId);
+						customer.portfolioGap = allPortfolioGaps.get(customer.customerId);
+						
+						LOG.info("Portfolio gap for customer : " + customer.portfolioGap.keySet().size() + " for cusotmer : " + customer.customerId);
+	
+						//customer.customerHoldings = getCustomerHolding(conn, customer.customerId);
+						//customer.portfolioGap = getPortfolioGap(conn, customer.customerId);
+						
+						if(customer.riskProfile.equalsIgnoreCase("CIP_3") )
+							customer.intRiskProfile = 3;
+						if(customer.riskProfile.equalsIgnoreCase("CIP_4") )
+							customer.intRiskProfile = 4;						
+						if(customer.riskProfile.equalsIgnoreCase("CIP_5") )
+							customer.intRiskProfile = 5;						
+						if(customer.riskProfile.equalsIgnoreCase("CIP_6") )
+							customer.intRiskProfile = 6;
+						
+						customerList.add(customer);
+					}
 					
 				}
 				
@@ -288,7 +307,7 @@ public class CustomerDAO {
 				while(rs.next())
 				{	
 					//Double gap=new BigDecimal(rs.getDouble("GAP") ).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
-					HashMap<String, Double> portfolioGap = result.get("CUST_ID");
+					HashMap<String, Double> portfolioGap = result.get(rs.getString("CUST_ID"));
 					
 					if(portfolioGap == null)
 					{
@@ -481,6 +500,8 @@ public class CustomerDAO {
 
 					//Write products for this recommendation of assetclass
 					writeProducts(conn, recoId, assetClass.id, result.recoId, seq, assetClass.products);
+					
+					conn.commit();
 				}				
 				return true;
 			}

@@ -57,7 +57,7 @@ public class DataSourceConnectionFactory {
 			
 			if(myConn == null || myConn.isClosed())
 			{
-				String url = "jdbc:db2j:net://9.121.57.142 :50000/SCBPOC";
+				String url = "jdbc:db2j:net://9.121.57.142:50000/SCBPOC";
 		        Connection conn = DriverManager.getConnection(url,"db2inst1", "db2inst1");
 		        
 		        myConn = new DBConnection(conn);
