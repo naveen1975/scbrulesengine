@@ -29,8 +29,7 @@ public class AssetClassLevel2 {
 
         @Override
         public int compare(AssetClassLevel2 o1, AssetClassLevel2 o2) {
-        	 return ((o1.gap)> (o2.gap)) ? 1 : ((o1.gap) < (o2.gap) ? -1 : 0);
-            //return o1.cashOnHand.compareTo(o2.cashOnHand);
+        	 return ((Math.abs(o1.gap))> (Math.abs(o2.gap))) ? 1 : ((Math.abs(o1.gap)) < (Math.abs(o2.gap)) ? -1 : 0);
         }
     }	
 }

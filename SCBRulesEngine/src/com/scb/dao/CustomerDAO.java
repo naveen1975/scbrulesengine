@@ -31,6 +31,49 @@ public class CustomerDAO {
 		DataSourceConnectionFactory factory = (DataSourceConnectionFactory) CacheService.get(IConstants.DATASOURCE_FACTORY);
 		
 		return factory.getConnection();
+	}
+	
+	public void deleteRecommendations()
+	{
+		long startTime = System.currentTimeMillis();
+		Connection conn = getConnection();
+		PreparedStatement stmt = null;
+		ResultSet rs = null;
+		
+		String sqlSelect = "DELETE FROM T_CUST_RECO";
+
+			try
+			{
+				stmt = conn.prepareStatement(sqlSelect);
+				
+				LOG.info(sqlSelect);
+				stmt.executeUpdate();
+				stmt.close();
+				
+				stmt = conn.prepareStatement("DELETE FROM T_CUST_RECO_PRD");
+				
+				LOG.info(sqlSelect);
+				stmt.executeUpdate();				
+			}
+			catch(Exception err)
+			{
+				LOG.error("Exception : " + err.getMessage());
+				err.printStackTrace();
+			}
+			finally
+			{
+				try
+				{
+					if(rs!=null) rs.close();
+					if(stmt!=null) stmt.close();
+					if(conn!=null) conn.close();
+				}
+				catch(Exception ignore)
+				{
+				}
+				
+				LOG.info("deleteRecommendations() Time Taken " + (System.currentTimeMillis() - startTime) + " msecs");			
+			}
 	}	
 
 
@@ -78,7 +121,7 @@ public class CustomerDAO {
 						customer.customerHoldings = allCustomerHoldings.get(customer.customerId);
 						customer.portfolioGap = allPortfolioGaps.get(customer.customerId);
 						
-						LOG.info("Portfolio gap for customer : " + customer.portfolioGap.keySet().size() + " for cusotmer : " + customer.customerId);
+						//LOG.info("Portfolio gap for customer : " + customer.portfolioGap.keySet().size() + " for cusotmer : " + customer.customerId);
 	
 						//customer.customerHoldings = getCustomerHolding(conn, customer.customerId);
 						//customer.portfolioGap = getPortfolioGap(conn, customer.customerId);
@@ -236,7 +279,7 @@ public class CustomerDAO {
 		
 		String sqlSelect = "SELECT PRD_ID AS PRODUCT_ID, "
 				  +"ASST_CLS_L2_CD AS ASSET_CLASS, CUST_ID "
-				 + "FROM T_IP_CUST_INV_SUMM A, VW_PROD_FUND B WHERE A.PRD_ID=B.fnd_ut_cd ORDER BY CUST_ID";
+				 + "FROM T_IP_CUST_INV_SUMM A, VW_PROD_FUND B WHERE INVST_SGD_CURR_AMT > 0 AND A.PRD_ID=B.fnd_ut_cd ORDER BY CUST_ID";
 
 			try
 			{
@@ -360,6 +403,7 @@ public class CustomerDAO {
 
 			try
 			{
+				
 				stmt = conn.prepareStatement(sqlRecInsert);
 				int seq = 0;
 				
@@ -372,10 +416,10 @@ public class CustomerDAO {
 					stmt.setString(3, result.customer.customerId);
 					stmt.setString(4, assetClass.id);
 					stmt.setString(5, assetClass.houseViewId);
-					LOG.info("Writing Gap : " + assetClass.gap);
+					//LOG.info("Writing Gap : " + assetClass.gap);
 					stmt.setBigDecimal(6, new BigDecimal(assetClass.gap));
 					//stmt.setDouble(6, assetClass.gap);
-					stmt.setString(7, IConstants.OC_NEG);
+					stmt.setString(7, "Sell");
 					stmt.setString(8, result.recoId);
 					stmt.setInt(9, 1); //Batch ID???
 					stmt.setInt(10, seq);
@@ -386,7 +430,7 @@ public class CustomerDAO {
 					writeProducts(conn, recoId, assetClass.id, result.recoId, seq, assetClass.products);
 				}
 				
-				seq = 0;
+				//seq = 0;
 				
 				for(AssetClassLevel2 assetClass : result.buyCategory.assetClassList)
 				{
@@ -398,7 +442,7 @@ public class CustomerDAO {
 					stmt.setString(4, assetClass.id);
 					stmt.setString(5, assetClass.houseViewId);
 					stmt.setBigDecimal(6, new BigDecimal(assetClass.gap));
-					stmt.setString(7, IConstants.UC_POS);
+					stmt.setString(7, "Buy");
 					stmt.setString(8, result.recoId);
 					stmt.setInt(9, 1); //Batch ID???
 					stmt.setInt(10, seq);
@@ -409,7 +453,7 @@ public class CustomerDAO {
 					writeProducts(conn, recoId, assetClass.id, result.recoId, seq, assetClass.products);
 				}
 
-				seq = 0;
+				//seq = 0;
 				
 				for(AssetClassLevel2 assetClass : result.rmNeutralCategory.assetClassList)
 				{
@@ -421,7 +465,7 @@ public class CustomerDAO {
 					stmt.setString(4, assetClass.id);
 					stmt.setString(5, assetClass.houseViewId);
 					stmt.setBigDecimal(6, new BigDecimal(assetClass.gap));
-					stmt.setString(7, IConstants.UC_NUT);
+					stmt.setString(7, "RM Neutral");
 					stmt.setString(8, result.recoId);
 					stmt.setInt(9, 1); //Batch ID???
 					stmt.setInt(10, seq);
@@ -433,7 +477,7 @@ public class CustomerDAO {
 				}
 				
 				
-				seq = 0;
+				//seq = 0;
 				
 				for(AssetClassLevel2 assetClass : result.rmNegCategory.assetClassList)
 				{
@@ -445,7 +489,7 @@ public class CustomerDAO {
 					stmt.setString(4, assetClass.id);
 					stmt.setString(5, assetClass.houseViewId);
 					stmt.setBigDecimal(6, new BigDecimal(assetClass.gap));;
-					stmt.setString(7, IConstants.UC_NEG);
+					stmt.setString(7, "RM Neg");
 					stmt.setString(8, result.recoId);
 					stmt.setInt(9, 1); //Batch ID???
 					stmt.setInt(10, seq);
@@ -456,7 +500,7 @@ public class CustomerDAO {
 					writeProducts(conn, recoId, assetClass.id, result.recoId, seq, assetClass.products);
 				}				
 
-				seq = 0;
+				//seq = 0;
 				
 				for(AssetClassLevel2 assetClass : result.holdPositiveCategory.assetClassList)
 				{
@@ -468,7 +512,7 @@ public class CustomerDAO {
 					stmt.setString(4, assetClass.id);
 					stmt.setString(5, assetClass.houseViewId);
 					stmt.setBigDecimal(6, new BigDecimal(assetClass.gap));
-					stmt.setString(7, IConstants.OC_POS);
+					stmt.setString(7, "Hold Pos");
 					stmt.setString(8, result.recoId);
 					stmt.setInt(9, 1); //Batch ID???
 					stmt.setInt(10, seq);
@@ -479,7 +523,7 @@ public class CustomerDAO {
 					writeProducts(conn, recoId, assetClass.id, result.recoId, seq, assetClass.products);
 				}
 				
-				seq = 0;
+				//seq = 0;
 				
 				for(AssetClassLevel2 assetClass : result.holdNeutralCategory.assetClassList)
 				{
@@ -491,7 +535,7 @@ public class CustomerDAO {
 					stmt.setString(4, assetClass.id);
 					stmt.setString(5, assetClass.houseViewId);
 					stmt.setBigDecimal(6, new BigDecimal(assetClass.gap));
-					stmt.setString(7, IConstants.OC_NUT);
+					stmt.setString(7, "Hold Neutral");
 					stmt.setString(8, result.recoId);
 					stmt.setInt(9, 1); //Batch ID???
 					stmt.setInt(10, seq);
@@ -500,9 +544,8 @@ public class CustomerDAO {
 
 					//Write products for this recommendation of assetclass
 					writeProducts(conn, recoId, assetClass.id, result.recoId, seq, assetClass.products);
-					
-					conn.commit();
-				}				
+				}
+				conn.commit();
 				return true;
 			}
 			catch(Exception err)

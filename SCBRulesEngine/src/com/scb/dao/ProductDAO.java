@@ -46,7 +46,7 @@ public class ProductDAO {
 	              +"RECO_FLG AS FOCUS_FUND_INDICATOR, "
 	              +"'F' AS FUND_TYPE "
 				  + "FROM VW_PROD_FUND WHERE THEMATIC_FND_IND='N' AND "
-	              + "FND_RSK_RTG <> 'Not Available' AND RECO_FLG = 'Y' ";
+	              + "FND_RSK_RTG <> 'Not Available' AND RECO_FLG = 'Y'  ";
 
 			try
 			{

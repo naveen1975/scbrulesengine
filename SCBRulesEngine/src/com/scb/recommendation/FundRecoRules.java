@@ -101,75 +101,79 @@ public class FundRecoRules implements IRule {
 		result.customer = customer;
 		
 		//For each asset class check the portfolio gap and houseview and assign the category
-		List<ModelPortfolio> modelPortfolioList = getModelPortfolioForCustomer(customer);
+		//List<ModelPortfolio> modelPortfolioList = getModelPortfolioForCustomer(customer);
 		
 		if(modelPortfolioList == null)
 		{
-			LOG.error("No modal portfolio for the customer <" + customer + "> with riskprofile : " + customer.riskProfile);
+			LOG.error("No model portfolio for the customer <" + customer + "> with riskprofile : " + customer.riskProfile);
 			return result;
 		}
 		
-		for(ModelPortfolio portfolio : modelPortfolioList)
+		//for(ModelPortfolio portfolio : modelPortfolioList)
+		for(String custAssetClass : customer.portfolioGap.keySet())
 		{
 			//Get HouseView
-			String houseView = getHouseView(portfolio.assetClassLevel2);
+			//String houseView = getHouseView(custAssetClass);
+			String houseView = getHouseView(custAssetClass);
 			
 			//Get Portfolio Gap
-			Double gap = customer.getPortfolioGap(portfolio.assetClassLevel2);
-
+			//Double gap = customer.getPortfolioGap(custAssetClass);
+			Double gap = customer.getPortfolioGap(custAssetClass);
 			if(gap==null || gap.doubleValue()==0.0)
 			{
-				LOG.error("No GAP in portfolio for assetclass <" + portfolio.assetClassLevel2 + "> for the customer <" + customer.customerId + "> with riskprofile : " + customer.riskProfile);				
+				LOG.error("No GAP in portfolio for assetclass <" + custAssetClass + "> for the customer <" + customer.customerId + "> with riskprofile : " + customer.riskProfile);				
 				gap = new Double(0).doubleValue();
+				continue;
 			}
 
+			LOG.info("GAP for cust asset class : " + custAssetClass + " for customer " + customer.customerId + " houseView : " + houseView);
 			
 			//Based on category add to the result list
 			if(houseView.equalsIgnoreCase(IConstants.NEGATIVE) && gap.doubleValue() < 0.0) //Sell Category
 			{
-				AssetClassLevel2 assetClass = new AssetClassLevel2(portfolio.assetClassLevel2, gap.doubleValue(), getHouseViewId(portfolio.assetClassLevel2));
+				AssetClassLevel2 assetClass = new AssetClassLevel2(custAssetClass, gap.doubleValue(), houseView);
 				result.sellCategory.addAssetClass(assetClass);
 				//Populate the holding fund list to sell recommendation
-				recommendFundsToSell(customer, assetClass, portfolio.assetClassLevel2);
+				recommendFundsToSell(customer, assetClass, custAssetClass);
 			}
 			
 			if(houseView.equalsIgnoreCase(IConstants.POSITIVE) && gap.doubleValue() > 0.0) //Buy Category
 			{
-				AssetClassLevel2 assetClass = new AssetClassLevel2(portfolio.assetClassLevel2, gap.doubleValue(), getHouseViewId(portfolio.assetClassLevel2));
+				AssetClassLevel2 assetClass = new AssetClassLevel2(custAssetClass, gap.doubleValue(), houseView);
 				result.buyCategory.addAssetClass(assetClass);
-				recommendFunds(customer, assetClass, portfolio.assetClassLevel2);
+				recommendFunds(customer, assetClass, custAssetClass);
 			}
 			
-			if(houseView.equalsIgnoreCase(IConstants.NEUTRAL) && gap.doubleValue() < 0.0) //RM Neutral Category
+			if(houseView.equalsIgnoreCase(IConstants.NEUTRAL) && gap.doubleValue() < 0.0) //Hold Neutral Category
 			{
-				AssetClassLevel2 assetClass = new AssetClassLevel2(portfolio.assetClassLevel2, gap.doubleValue(), getHouseViewId(portfolio.assetClassLevel2));
+				AssetClassLevel2 assetClass = new AssetClassLevel2(custAssetClass, gap.doubleValue(), houseView);
 				
-				result.rmNeutralCategory.addAssetClass(assetClass);
-				recommendFunds(customer, assetClass, portfolio.assetClassLevel2);
+				result.holdNeutralCategory.addAssetClass(assetClass);
+				recommendFunds(customer, assetClass, custAssetClass);
 			}
 			
-			if(houseView.equalsIgnoreCase(IConstants.NEGATIVE) && gap.doubleValue() < 0.0) //RM Negative Category
+			if(houseView.equalsIgnoreCase(IConstants.NEGATIVE) && gap.doubleValue() > 0.0) //RM Negative Category
 			{
-				AssetClassLevel2 assetClass = new AssetClassLevel2(portfolio.assetClassLevel2, gap.doubleValue(), getHouseViewId(portfolio.assetClassLevel2));
+				AssetClassLevel2 assetClass = new AssetClassLevel2(custAssetClass, gap.doubleValue(), houseView);
 
 				result.rmNegCategory.addAssetClass(assetClass);
-				recommendFunds(customer, assetClass, portfolio.assetClassLevel2);
+				recommendFunds(customer, assetClass, custAssetClass);
 			}
 			
-			if(houseView.equalsIgnoreCase(IConstants.POSITIVE) && gap.doubleValue() > 0.0) //Hold Positive Category
+			if(houseView.equalsIgnoreCase(IConstants.POSITIVE) && gap.doubleValue() < 0.0) //Hold Positive Category
 			{
-				AssetClassLevel2 assetClass = new AssetClassLevel2(portfolio.assetClassLevel2, gap.doubleValue(), getHouseViewId(portfolio.assetClassLevel2));
+				AssetClassLevel2 assetClass = new AssetClassLevel2(custAssetClass, gap.doubleValue(), houseView);
 
 				result.holdPositiveCategory.addAssetClass(assetClass);
-				recommendFundsToSell(customer, assetClass, portfolio.assetClassLevel2);
+				recommendFundsToSell(customer, assetClass, custAssetClass);
 			}
 			
 			if(houseView.equalsIgnoreCase(IConstants.NEUTRAL) && gap.doubleValue() > 0.0) //Hold Neutral Category
 			{
-				AssetClassLevel2 assetClass = new AssetClassLevel2(portfolio.assetClassLevel2, gap.doubleValue(), getHouseViewId(portfolio.assetClassLevel2));
+				AssetClassLevel2 assetClass = new AssetClassLevel2(custAssetClass, gap.doubleValue(), houseView);
 
-				result.holdNeutralCategory.addAssetClass(assetClass);
-				recommendFundsToSell(customer, assetClass, portfolio.assetClassLevel2);
+				result.rmNeutralCategory.addAssetClass(assetClass);
+				recommendFundsToSell(customer, assetClass, custAssetClass);
 			}
 		}
 		
@@ -180,7 +184,6 @@ public class FundRecoRules implements IRule {
 		rankBySuggestedValue(result.rmNeutralCategory);
 		rankBySuggestedValue(result.holdPositiveCategory);
 		rankBySuggestedValue(result.holdNeutralCategory);
-		
 		
 		return result;
 	}

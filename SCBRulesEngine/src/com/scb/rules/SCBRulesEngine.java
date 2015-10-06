@@ -96,17 +96,23 @@ public class SCBRulesEngine {
 	{
 		initialize();
 		int genCount = 0;
+		String selCustId = args.length > 0 ? args[0]:null;
+		
+		customerDao.deleteRecommendations();
 		for(Customer customer : customerList)
 		{
-			try
+			if(selCustId==null || customer.customerId.equalsIgnoreCase(selCustId))
 			{
-				if(writeRulesToDB(runRules(customer.customerId))) genCount++;
+				try
+				{
+					if(writeRulesToDB(runRules(customer.customerId))) genCount++;
+				}
+				catch(Exception e)
+				{
+					e.printStackTrace();
+					System.out.println("Unable to write rules for customer " + customer.customerId);
+				}
 			}
-			catch(Exception e)
-			{
-				e.printStackTrace();
-				System.out.println("Unable to write rules for customer " + customer.customerId);
-			}			
 		}
 		
 		LOG.info("Number of customers for which the recommendations are generated : " + genCount);
